@@ -2,4 +2,4 @@ Flask==3.1.2
 flask-cors==6.0.1
 curl-cffi>=0.15.0
 gunicorn==23.0.0
-yt-dlp[default] @ https://github.com/yt-dlp/yt-dlp/archive/master.tar.gz
+yt-dlp[default] @ git+https://github.com/yt-dlp/yt-dlp.git@master
