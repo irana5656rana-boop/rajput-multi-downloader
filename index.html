@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>4K Video Downloader</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#0d0d0f;color:#fff}
+.wrap{max-width:760px;margin:auto;padding:24px 16px 50px}
+h1{text-align:center;font-size:30px;margin:8px 0 6px}
+.sub{text-align:center;color:#aaa;margin:0 0 22px}
+.brand{text-align:center;font-weight:900;letter-spacing:5px;font-size:22px;margin-bottom:4px}.platforms{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px}
+.platform{border:1px solid #34343a;background:#18181b;border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer;color:#ddd;font-weight:700}
+.platform.active{border-color:#fff;background:#29292e;color:#fff}
+.icon{font-size:24px;display:block;margin-bottom:5px}
+.card{background:#171719;border:1px solid #303036;border-radius:18px;padding:16px}
+label{display:block;color:#bbb;font-size:14px;margin:8px 0}
+input,select{width:100%;padding:15px;border-radius:12px;border:1px solid #414149;background:#111113;color:#fff;font-size:16px;outline:none}
+button{width:100%;padding:15px;border:0;border-radius:12px;background:#fff;color:#111;font-weight:800;font-size:16px;margin-top:12px}
+button:disabled{opacity:.5}
+#result{margin-top:16px}
+.thumb{width:100%;max-height:300px;object-fit:cover;border-radius:12px}
+.msg{padding:12px;border-radius:10px;background:#202025;color:#ddd;margin-top:12px;white-space:pre-wrap}
+.small{color:#888;font-size:13px;text-align:center;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">RAJPUT</div><h1>🎬 4K Video Downloader</h1>
+  <p class="sub">TikTok • Instagram • Facebook • YouTube</p>
+
+  <div class="platforms">
+    <div class="platform active" data-p="tiktok"><span class="icon">♪</span>TikTok</div>
+    <div class="platform" data-p="instagram"><span class="icon">◎</span>Instagram</div>
+    <div class="platform" data-p="facebook"><span class="icon">f</span>Facebook</div>
+    <div class="platform" data-p="youtube"><span class="icon">▶</span>YouTube</div>
+    <div class="platform" data-p="audio"><span class="icon">♫</span>Audio / Song</div>
+  </div>
+
+  <div class="card">
+    <label for="url">Video URL</label>
+    <input id="url" placeholder="Paste TikTok / Instagram / Facebook / YouTube URL">
+
+    <label for="quality">Maximum quality</label>
+    <select id="quality">
+      <option value="best">Best quality (up to 4K)</option>
+      <option value="2160">4K (2160p)</option>
+      <option value="1440">2K (1440p)</option>
+      <option value="1080">1080p</option>
+      <option value="720">720p</option>
+      <option value="480">480p</option>
+    </select>
+
+    <button id="infoBtn">Get Video Info</button>
+    <div id="result"></div>
+  </div>
+
+  <div class="small">RAJPUT • Online server • Render • Maximum 2160p (4K) • Audio/Song</div>
+</div>
+
+<script>
+const urlEl=document.getElementById("url");
+const qualityEl=document.getElementById("quality");
+const infoBtn=document.getElementById("infoBtn");
+const result=document.getElementById("result");
+document.querySelectorAll(".platform").forEach(x=>{
+  x.onclick=()=>{document.querySelectorAll(".platform").forEach(y=>y.classList.remove("active"));x.classList.add("active");};
+});
+function msg(t){result.innerHTML='<div class="msg">'+t.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))+'</div>'}
+infoBtn.onclick=async()=>{
+  const url=urlEl.value.trim();
+  if(!url)return msg("Video URL paste karo.");
+  infoBtn.disabled=true; infoBtn.textContent="Loading...";
+  try{
+    const r=await fetch("/api/info",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});
+    const d=await r.json();
+    if(!d.success) return msg(d.error||"Video info nahi mili.");
+    const qs=(d.formats||[]).filter(x=>x<=2160);
+    result.innerHTML=(d.thumbnail?'<img class="thumb" src="'+d.thumbnail+'" alt="">':'')+
+      '<div class="msg"><b>'+d.title+'</b><br>Platform: '+d.platform+
+      '<br>Available: '+(qs.length?qs.join("p, ")+"p":"Best available")+
+      '</div><button id="downloadBtn">Download</button>';
+    document.getElementById("downloadBtn").onclick=downloadVideo;
+  }catch(e){msg("Connection error: "+e.message)}
+  finally{infoBtn.disabled=false;infoBtn.textContent="Get Video Info";}
+};
+async function downloadVideo(){
+  const b=document.getElementById("downloadBtn");
+  b.disabled=true;b.textContent="Downloading...";
+  try{
+    const r=await fetch("/api/download",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({url:urlEl.value.trim(),quality:qualityEl.value})});
+    if(!r.ok){
+      const d=await r.json().catch(()=>({}));
+      throw new Error(d.error||"Download failed");
+    }
+    const blob=await r.blob();
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);a.download="Video_4K.mp4";
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),30000);
+    b.textContent="Downloaded ✓";
+  }catch(e){msg("Download error: "+e.message);b.disabled=false;b.textContent="Download";}
+}
+</script>
+</body>
+</html>
