@@ -2,7 +2,6 @@ import os
 import re
 import uuid
 import shutil
-import tempfile
 from urllib.parse import urlparse
 
 from flask import Flask, request, jsonify, send_file
@@ -13,31 +12,20 @@ import yt_dlp
 app = Flask(__name__)
 CORS(app)
 
-# ============================================================
-# CONFIG
-# ============================================================
-
 DOWNLOAD_DIR = "/tmp/rajput-downloads"
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 MAX_QUALITY = 2160
 
-ALLOWED_HOSTS = [
+
+ALLOWED_HOSTS = (
     "tiktok.com",
-    "www.tiktok.com",
-    "vt.tiktok.com",
-    "vm.tiktok.com",
-    "m.tiktok.com",
     "instagram.com",
-    "www.instagram.com",
     "facebook.com",
-    "www.facebook.com",
     "fb.watch",
     "youtube.com",
-    "www.youtube.com",
     "youtu.be",
-    "m.youtube.com",
-]
+)
 
 
 # ============================================================
@@ -48,23 +36,18 @@ def clean_url(url):
     if not url:
         return ""
 
-    url = url.strip()
-
-    # Remove surrounding quotes
-    url = url.strip("\"'")
-
-    return url
+    return url.strip().strip("\"'")
 
 
-def get_hostname(url):
+def hostname(url):
     try:
         return (urlparse(url).hostname or "").lower()
     except Exception:
         return ""
 
 
-def detect_platform(url):
-    host = get_hostname(url)
+def platform_from_url(url):
+    host = hostname(url)
 
     if "tiktok.com" in host:
         return "tiktok"
@@ -75,44 +58,41 @@ def detect_platform(url):
     if "facebook.com" in host or host == "fb.watch":
         return "facebook"
 
-    if "youtube.com" in host or host == "youtu.be":
+    if "youtube.com" in host or "youtu.be" in host:
         return "youtube"
 
     return "unknown"
 
 
-def is_allowed_url(url):
-    host = get_hostname(url)
+def allowed_url(url):
+    host = hostname(url)
 
     if not host:
         return False
 
     return any(
-        host == allowed or host.endswith("." + allowed)
-        for allowed in ALLOWED_HOSTS
+        host == domain or host.endswith("." + domain)
+        for domain in ALLOWED_HOSTS
     )
 
 
 def safe_filename(name):
     if not name:
-        name = "rajput-video"
+        return "rajput-video"
 
     name = re.sub(r'[\\/:*?"<>|]+', "", name)
     name = re.sub(r"\s+", " ", name).strip()
 
-    if len(name) > 150:
-        name = name[:150]
-
-    return name or "rajput-video"
+    return name[:150] or "rajput-video"
 
 
-def get_video_format(quality):
+def quality_format(quality):
     try:
         quality = int(quality)
     except Exception:
         quality = 1080
 
-    quality = min(max(quality, 144), MAX_QUALITY)
+    quality = max(144, min(quality, MAX_QUALITY))
 
     return (
         f"bestvideo[height<={quality}]+bestaudio/"
@@ -120,66 +100,70 @@ def get_video_format(quality):
     )
 
 
-def base_ydl_options():
-    """
-    Common yt-dlp options.
-    """
+# ============================================================
+# YT-DLP OPTIONS
+# ============================================================
 
+def ytdlp_options():
     return {
         "quiet": True,
         "no_warnings": True,
         "noplaylist": True,
 
-        # Browser-like request handling
-        "http_headers": {
-            "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/131.0.0.0 Safari/537.36"
-            ),
-            "Accept-Language": "en-US,en;q=0.9",
-        },
+        # Browser impersonation
+        "impersonate": "chrome",
 
-        # Try browser impersonation where available.
-        "extractor_args": {
-            "generic": {
-                "impersonate": ["chrome"]
-            }
-        },
-
+        # Retry network requests
         "retries": 3,
         "fragment_retries": 3,
 
         "socket_timeout": 30,
 
-        # Do not keep unnecessary files
-        "overwrites": True,
+        # Current EJS configuration
+        "js_runtimes": {
+            "deno": {}
+        },
+
+        "remote_components": {
+            "ejs": ["github"]
+        },
+
+        "http_headers": {
+            "Accept-Language": "en-US,en;q=0.9"
+        },
     }
 
-
-# ============================================================
-# TIKTOK OPTIONS
-# ============================================================
 
 def tiktok_options():
     """
-    TikTok-specific fallback configuration.
+    TikTok-specific settings.
 
-    yt-dlp supports TikTok's mobile API through app_info.
-    We provide a fresh numeric device/install ID for each request.
+    Current yt-dlp TikTok extractor uses app information
+    and device information internally. We only provide
+    browser impersonation here so yt-dlp can handle the
+    current webpage challenge itself.
     """
 
-    iid = str(uuid.uuid4().int)[:19]
-    device_id = str(uuid.uuid4().int)[:19]
+    options = ytdlp_options()
 
-    return {
+    options["extractor_args"] = {
         "tiktok": {
-            "app_info": [
-                f"{iid}/trill/34.1.2/340001/1180"
-            ],
-            "device_id": device_id,
+            "api_hostname": [
+                "api16-normal-c-useast1a.tiktokv.com"
+            ]
         }
     }
+
+    return options
+
+
+def get_options(url):
+    platform = platform_from_url(url)
+
+    if platform == "tiktok":
+        return tiktok_options()
+
+    return ytdlp_options()
 
 
 # ============================================================
@@ -191,7 +175,7 @@ def home():
     return jsonify({
         "name": "RAJPUT Multi-Platform Downloader API",
         "status": "online",
-        "version": "2.0",
+        "version": "3.0",
         "yt_dlp": yt_dlp.version.__version__,
         "platforms": [
             "TikTok",
@@ -206,9 +190,10 @@ def home():
 # STATUS
 # ============================================================
 
-@app.route("/api/status", methods=["GET"])
-def status():
+@app.route("/api/status")
+def api_status():
     return jsonify({
+        "success": True,
         "status": "online",
         "service": "RAJPUT Multi-Platform Downloader",
         "yt_dlp": yt_dlp.version.__version__,
@@ -217,11 +202,11 @@ def status():
 
 
 # ============================================================
-# VIDEO INFO
+# INFO
 # ============================================================
 
 @app.route("/api/info", methods=["GET", "POST"])
-def info():
+def video_info():
 
     if request.method == "POST":
         data = request.get_json(silent=True) or {}
@@ -237,62 +222,67 @@ def info():
             "error": "URL is required"
         }), 400
 
-    if not is_allowed_url(url):
+    if not allowed_url(url):
         return jsonify({
             "success": False,
             "error": "Unsupported URL"
         }), 400
 
-    platform = detect_platform(url)
+    platform = platform_from_url(url)
 
-    options = base_ydl_options()
+    options = get_options(url)
+
     options["skip_download"] = True
-
-    # TikTok special configuration
-    if platform == "tiktok":
-        options["extractor_args"] = {
-            **options.get("extractor_args", {}),
-            **tiktok_options()
-        }
 
     try:
 
         with yt_dlp.YoutubeDL(options) as ydl:
-            data = ydl.extract_info(url, download=False)
 
-        if not data:
-            raise Exception("No information returned")
+            info = ydl.extract_info(
+                url,
+                download=False
+            )
+
+        if not info:
+            raise Exception(
+                "No video information was returned."
+            )
 
         formats = []
 
-        for f in data.get("formats", []):
-            height = f.get("height")
+        for fmt in info.get("formats", []):
 
-            if height:
-                try:
-                    height = int(height)
-                except Exception:
-                    continue
+            height = fmt.get("height")
 
-                if height <= MAX_QUALITY:
-                    formats.append({
-                        "format_id": f.get("format_id"),
-                        "height": height,
-                        "ext": f.get("ext"),
-                        "filesize": f.get("filesize"),
-                        "vcodec": f.get("vcodec"),
-                        "acodec": f.get("acodec")
-                    })
+            if not height:
+                continue
+
+            try:
+                height = int(height)
+            except Exception:
+                continue
+
+            if height > MAX_QUALITY:
+                continue
+
+            formats.append({
+                "format_id": fmt.get("format_id"),
+                "height": height,
+                "ext": fmt.get("ext"),
+                "vcodec": fmt.get("vcodec"),
+                "acodec": fmt.get("acodec"),
+                "filesize": fmt.get("filesize")
+            })
 
         return jsonify({
             "success": True,
             "platform": platform,
-            "id": data.get("id"),
-            "title": data.get("title") or "RAJPUT Video",
-            "thumbnail": data.get("thumbnail"),
-            "duration": data.get("duration"),
-            "uploader": data.get("uploader"),
-            "webpage_url": data.get("webpage_url") or url,
+            "id": info.get("id"),
+            "title": info.get("title") or "RAJPUT Video",
+            "thumbnail": info.get("thumbnail"),
+            "duration": info.get("duration"),
+            "uploader": info.get("uploader"),
+            "webpage_url": info.get("webpage_url") or url,
             "formats": formats
         })
 
@@ -310,7 +300,7 @@ def info():
 # ============================================================
 
 @app.route("/api/download", methods=["POST"])
-def download():
+def download_video():
 
     data = request.get_json(silent=True) or {}
 
@@ -322,24 +312,27 @@ def download():
             "error": "URL is required"
         }), 400
 
-    if not is_allowed_url(url):
+    if not allowed_url(url):
         return jsonify({
             "success": False,
             "error": "Unsupported URL"
         }), 400
 
-    platform = detect_platform(url)
-
-    quality = data.get("quality", 1080)
+    platform = platform_from_url(url)
 
     try:
-        quality = int(quality)
+        quality = int(data.get("quality", 1080))
     except Exception:
         quality = 1080
 
-    quality = min(max(quality, 144), MAX_QUALITY)
+    quality = max(
+        144,
+        min(quality, MAX_QUALITY)
+    )
 
-    mode = str(data.get("mode", "video")).lower()
+    mode = str(
+        data.get("mode", "video")
+    ).lower()
 
     job_id = uuid.uuid4().hex
 
@@ -356,84 +349,83 @@ def download():
 
     if mode != "audio":
 
-        output_template = os.path.join(
+        output = os.path.join(
             job_dir,
             "%(title).150s.%(ext)s"
         )
 
-        options = base_ydl_options()
+        options = get_options(url)
 
         options.update({
-            "format": get_video_format(quality),
-            "outtmpl": output_template,
-
-            # Merge video + audio
+            "format": quality_format(quality),
+            "outtmpl": output,
             "merge_output_format": "mp4",
 
-            # Prefer MP4-compatible streams
-            "format_sort": [
-                f"res:{quality}",
-                "codec:h264",
-                "ext:mp4",
-                "hasaud"
-            ],
+            "postprocessors": [
+                {
+                    "key": "FFmpegVideoConvertor",
+                    "preferedformat": "mp4"
+                }
+            ]
         })
-
-        if platform == "tiktok":
-            options["extractor_args"] = {
-                **options.get("extractor_args", {}),
-                **tiktok_options()
-            }
 
         try:
 
             with yt_dlp.YoutubeDL(options) as ydl:
 
-                info_data = ydl.extract_info(
+                info = ydl.extract_info(
                     url,
                     download=True
-                )
-
-                title = safe_filename(
-                    info_data.get("title")
-                    or "rajput-video"
                 )
 
             files = []
 
             for filename in os.listdir(job_dir):
-                path = os.path.join(job_dir, filename)
+
+                path = os.path.join(
+                    job_dir,
+                    filename
+                )
 
                 if os.path.isfile(path):
                     files.append(path)
 
             if not files:
                 raise Exception(
-                    "Video was extracted but no output file was created."
+                    "No video file was created."
                 )
 
-            # Prefer mp4
             mp4_files = [
                 f for f in files
                 if f.lower().endswith(".mp4")
             ]
 
-            final_file = (
-                max(mp4_files, key=os.path.getsize)
-                if mp4_files
-                else max(files, key=os.path.getsize)
-            )
+            if mp4_files:
+                final_file = max(
+                    mp4_files,
+                    key=os.path.getsize
+                )
+            else:
+                final_file = max(
+                    files,
+                    key=os.path.getsize
+                )
 
             return send_file(
                 final_file,
                 as_attachment=True,
-                download_name=os.path.basename(final_file),
+                download_name=os.path.basename(
+                    final_file
+                ),
                 mimetype="video/mp4"
             )
 
         except Exception as e:
 
-            shutil.rmtree(job_dir, ignore_errors=True)
+            shutil.rmtree(
+                job_dir,
+                ignore_errors=True
+            )
 
             return jsonify({
                 "success": False,
@@ -445,37 +437,31 @@ def download():
     # AUDIO / MP3
     # ========================================================
 
-    output_template = os.path.join(
+    output = os.path.join(
         job_dir,
         "%(title).150s.%(ext)s"
     )
 
-    options = base_ydl_options()
+    options = get_options(url)
 
     options.update({
         "format": "bestaudio/best",
-        "outtmpl": output_template,
+        "outtmpl": output,
 
         "postprocessors": [
             {
                 "key": "FFmpegExtractAudio",
                 "preferredcodec": "mp3",
-                "preferredquality": "320",
+                "preferredquality": "320"
             }
-        ],
+        ]
     })
-
-    if platform == "tiktok":
-        options["extractor_args"] = {
-            **options.get("extractor_args", {}),
-            **tiktok_options()
-        }
 
     try:
 
         with yt_dlp.YoutubeDL(options) as ydl:
 
-            info_data = ydl.extract_info(
+            ydl.extract_info(
                 url,
                 download=True
             )
@@ -483,7 +469,11 @@ def download():
         files = []
 
         for filename in os.listdir(job_dir):
-            path = os.path.join(job_dir, filename)
+
+            path = os.path.join(
+                job_dir,
+                filename
+            )
 
             if os.path.isfile(path):
                 files.append(path)
@@ -495,7 +485,7 @@ def download():
 
         if not mp3_files:
             raise Exception(
-                "Audio was extracted but MP3 file was not created."
+                "MP3 file was not created."
             )
 
         final_file = max(
@@ -506,13 +496,18 @@ def download():
         return send_file(
             final_file,
             as_attachment=True,
-            download_name=os.path.basename(final_file),
+            download_name=os.path.basename(
+                final_file
+            ),
             mimetype="audio/mpeg"
         )
 
     except Exception as e:
 
-        shutil.rmtree(job_dir, ignore_errors=True)
+        shutil.rmtree(
+            job_dir,
+            ignore_errors=True
+        )
 
         return jsonify({
             "success": False,
@@ -542,11 +537,14 @@ def internal_error(error):
 
 
 # ============================================================
-# LOCAL RUN
+# RUN
 # ============================================================
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
+
+    port = int(
+        os.environ.get("PORT", 8080)
+    )
 
     app.run(
         host="0.0.0.0",
