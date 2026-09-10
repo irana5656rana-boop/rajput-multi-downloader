@@ -1,108 +1,1090 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>4K Video Downloader</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>RAJPUT Multi-Platform Downloader</title>
+
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#0d0d0f;color:#fff}
-.wrap{max-width:760px;margin:auto;padding:24px 16px 50px}
-h1{text-align:center;font-size:30px;margin:8px 0 6px}
-.sub{text-align:center;color:#aaa;margin:0 0 22px}
-.brand{text-align:center;font-weight:900;letter-spacing:5px;font-size:22px;margin-bottom:4px}.platforms{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px}
-.platform{border:1px solid #34343a;background:#18181b;border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer;color:#ddd;font-weight:700}
-.platform.active{border-color:#fff;background:#29292e;color:#fff}
-.icon{font-size:24px;display:block;margin-bottom:5px}
-.card{background:#171719;border:1px solid #303036;border-radius:18px;padding:16px}
-label{display:block;color:#bbb;font-size:14px;margin:8px 0}
-input,select{width:100%;padding:15px;border-radius:12px;border:1px solid #414149;background:#111113;color:#fff;font-size:16px;outline:none}
-button{width:100%;padding:15px;border:0;border-radius:12px;background:#fff;color:#111;font-weight:800;font-size:16px;margin-top:12px}
-button:disabled{opacity:.5}
-#result{margin-top:16px}
-.thumb{width:100%;max-height:300px;object-fit:cover;border-radius:12px}
-.msg{padding:12px;border-radius:10px;background:#202025;color:#ddd;margin-top:12px;white-space:pre-wrap}
-.small{color:#888;font-size:13px;text-align:center;margin-top:16px}
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    min-height:100vh;
+    background:
+        radial-gradient(circle at 50% 0%,#242830 0%,#0a0c10 35%,#030405 75%);
+    color:#fff;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+.container{
+    width:94%;
+    max-width:1000px;
+    margin:auto;
+    padding:20px 0 110px;
+}
+
+/* TOP */
+.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:30px;
+    color:#ddd;
+}
+
+.menu{
+    cursor:pointer;
+}
+
+.moon{
+    cursor:pointer;
+}
+
+/* LOGO */
+.logo{
+    text-align:center;
+    margin-top:15px;
+}
+
+.crown{
+    font-size:52px;
+    color:#ff1230;
+    text-shadow:0 0 25px #ff1230;
+}
+
+.logo h1{
+    font-size:58px;
+    font-weight:1000;
+    font-style:italic;
+    letter-spacing:-3px;
+}
+
+.logo h1 span{
+    color:#ff1230;
+}
+
+.tagline{
+    margin-top:8px;
+    color:#d9dde4;
+    letter-spacing:5px;
+    font-size:14px;
+}
+
+.features{
+    margin-top:12px;
+    color:#aeb5c0;
+    font-size:12px;
+    letter-spacing:4px;
+}
+
+.features b{
+    color:#ff1230;
+    margin:0 8px;
+}
+
+/* PLATFORMS */
+.platforms{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:14px;
+    margin-top:30px;
+}
+
+.platform{
+    height:145px;
+    background:linear-gradient(145deg,#11161d,#07090c);
+    border:1px solid #29313c;
+    border-radius:20px;
+    color:white;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    transition:.2s;
+}
+
+.platform:hover{
+    border-color:#ff1230;
+    box-shadow:0 0 22px #ff123055;
+}
+
+.platform.active{
+    border:2px solid #ff1230;
+    box-shadow:0 0 25px #ff123055;
+}
+
+.platform-icon{
+    font-size:45px;
+}
+
+.platform-name{
+    font-size:18px;
+    font-weight:bold;
+}
+
+/* MAIN CARD */
+.card{
+    margin-top:20px;
+    padding:24px;
+    background:linear-gradient(180deg,#0d1117,#05070a);
+    border:1px solid #252e39;
+    border-radius:22px;
+}
+
+/* URL */
+.url-row{
+    display:grid;
+    grid-template-columns:50px 1fr 130px;
+    gap:10px;
+}
+
+.url-icon,
+.url-input{
+    height:62px;
+    border:1px solid #303947;
+    border-radius:15px;
+    background:#05080c;
+    color:white;
+}
+
+.url-icon{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:25px;
+}
+
+.url-input{
+    width:100%;
+    padding:0 18px;
+    font-size:17px;
+    outline:none;
+}
+
+.url-input:focus{
+    border-color:#ff1230;
+    box-shadow:0 0 12px #ff123033;
+}
+
+.paste{
+    border:0;
+    border-radius:15px;
+    background:#ff1230;
+    color:white;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+/* MODES */
+.modes{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:15px;
+}
+
+.mode{
+    height:58px;
+    border:1px solid #303947;
+    border-radius:15px;
+    background:#070a0f;
+    color:#aeb8c8;
+    font-size:17px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.mode.active{
+    background:#ff1230;
+    color:white;
+    border-color:#ff1230;
+    box-shadow:0 0 18px #ff123055;
+}
+
+/* TITLES */
+.section-title{
+    margin:22px 0 12px;
+    font-size:16px;
+    font-weight:bold;
+}
+
+/* QUALITY */
+.qualities{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:10px;
+}
+
+.quality{
+    height:82px;
+    border:1px solid #303947;
+    border-radius:15px;
+    background:#070a0f;
+    color:#cbd4e3;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.quality small{
+    display:block;
+    color:#8994a5;
+    margin-top:5px;
+    font-weight:normal;
+}
+
+.quality.active{
+    border:2px solid #ff1230;
+    color:white;
+    box-shadow:0 0 18px #ff123055;
+}
+
+/* OPTIONS */
+.options{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 30px;
+    border-top:1px solid #202731;
+    padding-top:15px;
+}
+
+.option{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    color:#b9c2ce;
+    padding:10px 0;
+}
+
+/* TOGGLE */
+.toggle{
+    width:54px;
+    height:30px;
+    border-radius:20px;
+    background:#29323e;
+    padding:3px;
+    cursor:pointer;
+}
+
+.toggle span{
+    display:block;
+    width:24px;
+    height:24px;
+    background:#aab3c0;
+    border-radius:50%;
+    transition:.2s;
+}
+
+.toggle.on{
+    background:#ff1230;
+}
+
+.toggle.on span{
+    transform:translateX(24px);
+    background:white;
+}
+
+/* DOWNLOAD */
+.download{
+    width:100%;
+    height:62px;
+    margin-top:18px;
+    border:0;
+    border-radius:15px;
+    background:linear-gradient(135deg,#ff1230,#e6001d);
+    color:white;
+    font-size:20px;
+    font-weight:900;
+    cursor:pointer;
+    box-shadow:0 0 22px #ff123044;
+}
+
+.download:hover{
+    box-shadow:0 0 30px #ff123077;
+}
+
+/* RESULT */
+.result{
+    display:none;
+    margin-top:18px;
+    padding:15px;
+    border:1px solid #29313c;
+    border-radius:16px;
+    background:#05080c;
+    gap:15px;
+}
+
+.result img{
+    width:210px;
+    height:120px;
+    object-fit:cover;
+    border-radius:12px;
+}
+
+.result-info{
+    flex:1;
+}
+
+.result-title{
+    font-size:17px;
+    font-weight:bold;
+}
+
+.result-status{
+    margin-top:10px;
+    color:#aeb8c8;
+    white-space:pre-wrap;
+}
+
+.error{
+    color:#ff6578;
+}
+
+.success{
+    color:#63f39b;
+}
+
+/* READY BOX */
+.ready{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    margin-top:20px;
+    padding:15px;
+    border:1px solid #252e39;
+    border-radius:18px;
+    background:#05080c;
+}
+
+.ready-icon{
+    width:230px;
+    height:110px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:12px;
+    background:linear-gradient(135deg,#25070c,#070a0f);
+    color:#ff1230;
+    font-size:50px;
+}
+
+.ready-text strong{
+    font-size:16px;
+}
+
+.ready-text p{
+    color:#9da7b5;
+    margin-top:8px;
+}
+
+/* BOTTOM */
+.bottom{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    height:75px;
+    background:rgba(3,5,7,.96);
+    border-top:1px solid #29313c;
+    backdrop-filter:blur(12px);
+}
+
+.bottom-inner{
+    width:94%;
+    max-width:1000px;
+    height:100%;
+    margin:auto;
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    align-items:center;
+    text-align:center;
+}
+
+.nav{
+    color:#8f99a8;
+    font-size:12px;
+}
+
+.nav-icon{
+    display:block;
+    font-size:25px;
+    margin-bottom:3px;
+}
+
+.nav.active{
+    color:#ff1230;
+}
+
+.brand{
+    font-weight:bold;
+}
+
+.brand span{
+    display:block;
+    color:#ff1230;
+    font-size:19px;
+    font-style:italic;
+}
+
+/* MOBILE */
+@media(max-width:700px){
+
+    .container{
+        padding-top:10px;
+    }
+
+    .logo h1{
+        font-size:42px;
+    }
+
+    .crown{
+        font-size:43px;
+    }
+
+    .tagline{
+        font-size:9px;
+        letter-spacing:3px;
+    }
+
+    .features{
+        font-size:9px;
+        letter-spacing:2px;
+    }
+
+    .platforms{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .platform{
+        height:120px;
+    }
+
+    .platform:last-child{
+        grid-column:span 2;
+    }
+
+    .url-row{
+        grid-template-columns:42px 1fr;
+    }
+
+    .paste{
+        grid-column:span 2;
+        height:52px;
+    }
+
+    .qualities{
+        grid-template-columns:repeat(3,1fr);
+    }
+
+    .options{
+        grid-template-columns:1fr;
+    }
+
+    .ready{
+        display:none;
+    }
+
+    .result img{
+        width:120px;
+        height:80px;
+    }
+
+    .card{
+        padding:16px;
+    }
+}
 </style>
 </head>
+
 <body>
-<div class="wrap">
-  <div class="brand">RAJPUT</div><h1>🎬 4K Video Downloader</h1>
-  <p class="sub">TikTok • Instagram • Facebook • YouTube</p>
 
-  <div class="platforms">
-    <div class="platform active" data-p="tiktok"><span class="icon">♪</span>TikTok</div>
-    <div class="platform" data-p="instagram"><span class="icon">◎</span>Instagram</div>
-    <div class="platform" data-p="facebook"><span class="icon">f</span>Facebook</div>
-    <div class="platform" data-p="youtube"><span class="icon">▶</span>YouTube</div>
-    <div class="platform" data-p="audio"><span class="icon">♫</span>Audio / Song</div>
-  </div>
+<div class="container">
 
-  <div class="card">
-    <label for="url">Video URL</label>
-    <input id="url" placeholder="Paste TikTok / Instagram / Facebook / YouTube URL">
+    <!-- TOP -->
+    <div class="top">
+        <div class="menu">☰</div>
+        <div></div>
+        <div class="moon">☾</div>
+    </div>
 
-    <label for="quality">Maximum quality</label>
-    <select id="quality">
-      <option value="best">Best quality (up to 4K)</option>
-      <option value="2160">4K (2160p)</option>
-      <option value="1440">2K (1440p)</option>
-      <option value="1080">1080p</option>
-      <option value="720">720p</option>
-      <option value="480">480p</option>
-    </select>
+    <!-- LOGO -->
+    <div class="logo">
 
-    <button id="infoBtn">Get Video Info</button>
-    <div id="result"></div>
-  </div>
+        <div class="crown">♛</div>
 
-  <div class="small">RAJPUT • Online server • Render • Maximum 2160p (4K) • Audio/Song</div>
+        <h1>
+            <span>R</span>AJPUT
+        </h1>
+
+        <div class="tagline">
+            MULTI-PLATFORM DOWNLOADER
+        </div>
+
+        <div class="features">
+            VIDEO <b>|</b>
+            AUDIO <b>|</b>
+            FAST <b>|</b>
+            4K
+        </div>
+
+    </div>
+
+
+    <!-- PLATFORMS -->
+    <div class="platforms">
+
+        <button class="platform active" data-platform="tiktok">
+            <div class="platform-icon">♪</div>
+            <div class="platform-name">TikTok</div>
+        </button>
+
+        <button class="platform" data-platform="instagram">
+            <div class="platform-icon">◎</div>
+            <div class="platform-name">Instagram</div>
+        </button>
+
+        <button class="platform" data-platform="facebook">
+            <div class="platform-icon">f</div>
+            <div class="platform-name">Facebook</div>
+        </button>
+
+        <button class="platform" data-platform="youtube">
+            <div class="platform-icon">▶</div>
+            <div class="platform-name">YouTube</div>
+        </button>
+
+        <button class="platform" data-platform="audio">
+            <div class="platform-icon">♫</div>
+            <div class="platform-name">Audio / Song</div>
+        </button>
+
+    </div>
+
+
+    <!-- MAIN -->
+    <div class="card">
+
+        <!-- URL -->
+        <div class="url-row">
+
+            <div class="url-icon">
+                ↗
+            </div>
+
+            <input
+                id="url"
+                class="url-input"
+                type="text"
+                placeholder="Paste video or song URL here..."
+            >
+
+            <button id="paste" class="paste">
+                ▣ Paste
+            </button>
+
+        </div>
+
+
+        <!-- VIDEO / AUDIO -->
+        <div class="modes">
+
+            <button id="videoMode" class="mode active">
+                ▣ &nbsp; Video
+            </button>
+
+            <button id="audioMode" class="mode">
+                ♫ &nbsp; Audio (MP3)
+            </button>
+
+        </div>
+
+
+        <!-- QUALITY -->
+        <div class="section-title">
+            ⚙ &nbsp; Select Quality
+        </div>
+
+        <div class="qualities">
+
+            <button class="quality" data-quality="480">
+                480p
+                <small>SD</small>
+            </button>
+
+            <button class="quality" data-quality="720">
+                720p
+                <small>HD</small>
+            </button>
+
+            <button class="quality" data-quality="1080">
+                1080p
+                <small>Full HD</small>
+            </button>
+
+            <button class="quality" data-quality="1440">
+                1440p
+                <small>2K</small>
+            </button>
+
+            <button class="quality active" data-quality="2160">
+                2160p
+                <small>4K 👑</small>
+            </button>
+
+        </div>
+
+
+        <!-- OPTIONS -->
+        <div class="section-title">
+            ⚙ &nbsp; Additional Options
+        </div>
+
+        <div class="options">
+
+            <div class="option">
+                <span>⇩ &nbsp; Download Thumbnail</span>
+
+                <div class="toggle" data-toggle="thumbnail">
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="option">
+                <span>♫ &nbsp; Extract Audio (MP3)</span>
+
+                <div class="toggle on" data-toggle="extract">
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="option">
+                <span>CC &nbsp; Download Subtitles</span>
+
+                <div class="toggle" data-toggle="subtitles">
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="option">
+                <span>▥ &nbsp; High Quality Audio</span>
+
+                <div class="toggle on" data-toggle="hq">
+                    <span></span>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- DOWNLOAD -->
+        <button id="download" class="download">
+            ⇩ &nbsp; Download Now &nbsp; ⚡
+        </button>
+
+
+        <!-- RESULT -->
+        <div id="result" class="result">
+
+            <img id="thumbnail" src="" alt="">
+
+            <div class="result-info">
+
+                <div id="resultTitle" class="result-title">
+                    Ready
+                </div>
+
+                <div id="resultStatus" class="result-status">
+                    Paste a URL and press Download.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- READY -->
+    <div class="ready">
+
+        <div class="ready-icon">
+            ♛
+        </div>
+
+        <div class="ready-text">
+
+            <strong>
+                ◉ &nbsp; Ready to Download
+            </strong>
+
+            <p>
+                ◷ &nbsp; High Speed &nbsp; | &nbsp;
+                Secure &nbsp; | &nbsp;
+                No Ads
+            </p>
+
+            <p>
+                ♧ &nbsp;
+                Supports: TikTok | Instagram |
+                Facebook | YouTube | Audio
+            </p>
+
+        </div>
+
+    </div>
+
 </div>
 
+
+<!-- BOTTOM -->
+<div class="bottom">
+
+    <div class="bottom-inner">
+
+        <div class="nav active">
+            <span class="nav-icon">⌂</span>
+            Home
+        </div>
+
+        <div class="brand">
+            ♛
+            <span>Hassan Rajput</span>
+        </div>
+
+        <div class="nav">
+            <span class="nav-icon">◷</span>
+            History &nbsp; ⚙ Settings
+        </div>
+
+    </div>
+
+</div>
+
+
 <script>
-const urlEl=document.getElementById("url");
-const qualityEl=document.getElementById("quality");
-const infoBtn=document.getElementById("infoBtn");
-const result=document.getElementById("result");
-document.querySelectorAll(".platform").forEach(x=>{
-  x.onclick=()=>{document.querySelectorAll(".platform").forEach(y=>y.classList.remove("active"));x.classList.add("active");};
+
+/* API */
+const API = window.location.origin;
+
+
+/* VARIABLES */
+let currentMode = "video";
+let currentQuality = "2160";
+
+
+/* ELEMENTS */
+const urlInput = document.getElementById("url");
+const result = document.getElementById("result");
+const resultTitle = document.getElementById("resultTitle");
+const resultStatus = document.getElementById("resultStatus");
+const thumbnail = document.getElementById("thumbnail");
+
+
+/* PLATFORM BUTTONS */
+document.querySelectorAll(".platform").forEach(button => {
+
+    button.addEventListener("click", () => {
+
+        document
+            .querySelectorAll(".platform")
+            .forEach(x => x.classList.remove("active"));
+
+        button.classList.add("active");
+
+        const platform = button.dataset.platform;
+
+        if(platform === "audio"){
+            setMode("audio");
+        }else{
+            setMode("video");
+        }
+
+    });
+
 });
-function msg(t){result.innerHTML='<div class="msg">'+t.replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))+'</div>'}
-infoBtn.onclick=async()=>{
-  const url=urlEl.value.trim();
-  if(!url)return msg("Video URL paste karo.");
-  infoBtn.disabled=true; infoBtn.textContent="Loading...";
-  try{
-    const r=await fetch("/api/info",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url})});
-    const d=await r.json();
-    if(!d.success) return msg(d.error||"Video info nahi mili.");
-    const qs=(d.formats||[]).filter(x=>x<=2160);
-    result.innerHTML=(d.thumbnail?'<img class="thumb" src="'+d.thumbnail+'" alt="">':'')+
-      '<div class="msg"><b>'+d.title+'</b><br>Platform: '+d.platform+
-      '<br>Available: '+(qs.length?qs.join("p, ")+"p":"Best available")+
-      '</div><button id="downloadBtn">Download</button>';
-    document.getElementById("downloadBtn").onclick=downloadVideo;
-  }catch(e){msg("Connection error: "+e.message)}
-  finally{infoBtn.disabled=false;infoBtn.textContent="Get Video Info";}
-};
-async function downloadVideo(){
-  const b=document.getElementById("downloadBtn");
-  b.disabled=true;b.textContent="Downloading...";
-  try{
-    const r=await fetch("/api/download",{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({url:urlEl.value.trim(),quality:qualityEl.value})});
-    if(!r.ok){
-      const d=await r.json().catch(()=>({}));
-      throw new Error(d.error||"Download failed");
-    }
-    const blob=await r.blob();
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(blob);a.download="Video_4K.mp4";
-    document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href),30000);
-    b.textContent="Downloaded ✓";
-  }catch(e){msg("Download error: "+e.message);b.disabled=false;b.textContent="Download";}
+
+
+/* MODE */
+function setMode(mode){
+
+    currentMode = mode;
+
+    document
+        .getElementById("videoMode")
+        .classList.toggle("active",mode === "video");
+
+    document
+        .getElementById("audioMode")
+        .classList.toggle("active",mode === "audio");
+
 }
+
+
+/* MODE BUTTONS */
+document
+    .getElementById("videoMode")
+    .addEventListener("click",() => {
+
+        setMode("video");
+
+    });
+
+
+document
+    .getElementById("audioMode")
+    .addEventListener("click",() => {
+
+        setMode("audio");
+
+    });
+
+
+/* QUALITY */
+document.querySelectorAll(".quality").forEach(button => {
+
+    button.addEventListener("click",() => {
+
+        document
+            .querySelectorAll(".quality")
+            .forEach(x => x.classList.remove("active"));
+
+        button.classList.add("active");
+
+        currentQuality = button.dataset.quality;
+
+    });
+
+});
+
+
+/* TOGGLES */
+document.querySelectorAll(".toggle").forEach(toggle => {
+
+    toggle.addEventListener("click",() => {
+
+        toggle.classList.toggle("on");
+
+    });
+
+});
+
+
+/* PASTE */
+document
+    .getElementById("paste")
+    .addEventListener("click",async() => {
+
+        try{
+
+            const text =
+                await navigator.clipboard.readText();
+
+            urlInput.value = text;
+
+        }catch(error){
+
+            urlInput.focus();
+
+        }
+
+    });
+
+
+/* RESULT */
+function showResult(message,type="normal"){
+
+    result.style.display = "flex";
+
+    resultStatus.className = "result-status";
+
+    if(type === "error"){
+        resultStatus.classList.add("error");
+    }
+
+    if(type === "success"){
+        resultStatus.classList.add("success");
+    }
+
+    resultStatus.textContent = message;
+
+}
+
+
+/* DOWNLOAD */
+document
+    .getElementById("download")
+    .addEventListener("click",async() => {
+
+        const url = urlInput.value.trim();
+
+        if(!url){
+
+            showResult(
+                "Please paste a TikTok, Instagram, Facebook or YouTube URL.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        try{
+
+            showResult("Loading video information...");
+
+
+            /* INFO */
+            const infoResponse =
+                await fetch(API + "/api/info",{
+
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+
+                    body:JSON.stringify({
+                        url:url
+                    })
+
+                });
+
+
+            const info =
+                await infoResponse.json();
+
+
+            if(!info.success){
+
+                throw new Error(
+                    info.error || "Could not get video information."
+                );
+
+            }
+
+
+            resultTitle.textContent =
+                info.title || "Video Ready";
+
+
+            if(info.thumbnail){
+
+                thumbnail.src =
+                    info.thumbnail;
+
+            }
+
+
+            showResult(
+                (info.platform || "VIDEO").toUpperCase() +
+                " detected.\nStarting download..."
+            );
+
+
+            /* DOWNLOAD */
+            const downloadResponse =
+                await fetch(API + "/api/download",{
+
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        url:url,
+
+                        quality:currentQuality,
+
+                        mode:currentMode
+
+                    })
+
+                });
+
+
+            if(!downloadResponse.ok){
+
+                let errorText =
+                    "Download failed.";
+
+                try{
+
+                    const errorData =
+                        await downloadResponse.json();
+
+                    errorText =
+                        errorData.error || errorText;
+
+                }catch(e){}
+
+                throw new Error(errorText);
+
+            }
+
+
+            const blob =
+                await downloadResponse.blob();
+
+
+            const downloadUrl =
+                URL.createObjectURL(blob);
+
+
+            const link =
+                document.createElement("a");
+
+            link.href =
+                downloadUrl;
+
+            link.download =
+                currentMode === "audio"
+                    ? "Rajput_Song.mp3"
+                    : "Rajput_Video.mp4";
+
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            link.remove();
+
+
+            setTimeout(() => {
+
+                URL.revokeObjectURL(downloadUrl);
+
+            },60000);
+
+
+            showResult(
+                "Download started successfully ✓",
+                "success"
+            );
+
+
+        }catch(error){
+
+            showResult(
+                "Error: " + error.message,
+                "error"
+            );
+
+        }
+
+    });
+
 </script>
+
 </body>
-</html>
+  </html>
